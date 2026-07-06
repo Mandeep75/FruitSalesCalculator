@@ -38,6 +38,19 @@ Design notes:
 - **Discounts are data, not code** — a fruit carries an optional rule; no new
   classes are needed to configure a discounted fruit.
 
+  ## Pricing strategies (Strategy pattern)
+
+`IPricingStrategy` defines one interchangeable way of pricing a line:
+given a base unit price and a quantity, return the line total.
+
+- **`PerWeightPricingStrategy`** — price × weight; fractional quantities valid.
+- **`PerItemPricingStrategy`** — price × count; rejects fractional quantities,
+  since you can't buy 2.5 bananas.
+
+The strategies take two numbers rather than domain objects, keeping them
+decoupled from the domain model and freely composable (the discount decorator,
+added next, wraps any strategy through the same interface).
+
 ## Status
 
 Work in progress — being built incrementally, commit by commit. Design decisions,
