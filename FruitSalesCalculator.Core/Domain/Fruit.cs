@@ -45,7 +45,7 @@ public class DiscountRule
     public decimal DiscountPercentage { get; }
     public DiscountKind Kind { get; }
 
-    public DiscountRule(decimal thresholdQuantity, decimal discountPercentage, DiscountKind kind)
+    public DiscountRule(decimal thresholdQuantity, decimal discountPercentage, DiscountKind kind = DiscountKind.WholeLine)
     {
         if (thresholdQuantity <= 0)
             throw new ArgumentOutOfRangeException(nameof(thresholdQuantity),

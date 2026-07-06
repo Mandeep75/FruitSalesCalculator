@@ -73,6 +73,17 @@ Two interpretation decisions on the Cherry rule, both pinned by tests:
   (`DiscountKind`), so different fruits can use different schemes in the
   same shop.
 
+  ## Strategy composition (Factory pattern)
+
+`PricingStrategyFactory` is the single place that decides which pricing code a
+fruit needs: pick the base strategy from `PricingType`, then wrap it in the
+decorator matching the discount rule's `DiscountKind`, if a rule is present.
+
+Consumers never construct strategies or inspect pricing types - they hand the
+factory a fruit and receive a composed `IPricingStrategy`. Adding a new pricing
+type or discount kind is one new class plus one new case in this factory;
+nothing else in the system changes.
+
 ## Status
 
 Work in progress — being built incrementally, commit by commit. Design decisions,
