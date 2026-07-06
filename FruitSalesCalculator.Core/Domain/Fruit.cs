@@ -43,8 +43,9 @@ public class DiscountRule
 {
     public decimal ThresholdQuantity { get; }
     public decimal DiscountPercentage { get; }
+    public DiscountKind Kind { get; }
 
-    public DiscountRule(decimal thresholdQuantity, decimal discountPercentage)
+    public DiscountRule(decimal thresholdQuantity, decimal discountPercentage, DiscountKind kind)
     {
         if (thresholdQuantity <= 0)
             throw new ArgumentOutOfRangeException(nameof(thresholdQuantity),
@@ -55,5 +56,17 @@ public class DiscountRule
 
         ThresholdQuantity = thresholdQuantity;
         DiscountPercentage = discountPercentage;
+        Kind = kind;
     }
+}
+/// <summary>
+/// How a discount applies once the threshold is exceeded.
+/// </summary>
+public enum DiscountKind
+{
+    /// <summary>The entire line is discounted (retail promotion style).</summary>
+    WholeLine,
+
+    /// <summary>Only the quantity above the threshold is discounted (tariff style).</summary>
+    Tiered
 }

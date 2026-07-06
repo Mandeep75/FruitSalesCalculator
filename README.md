@@ -62,6 +62,17 @@ can stack (e.g. a future seasonal discount wrapping a bulk discount).
 Boundary decision: the spec says "more than 2kg", so exactly 2kg pays full
 price - pinned by a dedicated test.
 
+Two interpretation decisions on the Cherry rule, both pinned by tests:
+
+- "More than 2kg" is exclusive - exactly 2kg pays full price.
+- The brief's phrasing ("10% off for more than 2kg") is ambiguous between
+  discounting the whole line or only the excess. Both are implemented as
+  decorators - `BulkDiscountDecorator` (whole line, the default, matching
+  retail promotion language) and `TieredDiscountDecorator` (marginal,
+  tariff-style). Which applies is data on the fruit's `DiscountRule`
+  (`DiscountKind`), so different fruits can use different schemes in the
+  same shop.
+
 ## Status
 
 Work in progress — being built incrementally, commit by commit. Design decisions,
