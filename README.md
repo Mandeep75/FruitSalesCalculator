@@ -84,6 +84,18 @@ factory a fruit and receive a composed `IPricingStrategy`. Adding a new pricing
 type or discount kind is one new class plus one new case in this factory;
 nothing else in the system changes.
 
+## Fruit catalogue (Repository pattern)
+
+`IFruitRepository` abstracts catalogue storage; services depend only on the
+interface. The default `InMemoryFruitRepository` uses a `ConcurrentDictionary`
+with a case-insensitive comparer:
+
+- Safe under concurrent reads and writes (covered by a 100-parallel-writes
+  test asserting no lost entries) - and since `Fruit` is immutable, shared
+  instances are safe to read from concurrently priced orders without locks.
+- `GetByName` returns null for unknown fruit (normal outcome, handled by the
+  pricing service); `Add` throws on duplicates (caller error, fails loudly).
+
 ## Status
 
 Work in progress — being built incrementally, commit by commit. Design decisions,
