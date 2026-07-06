@@ -51,6 +51,17 @@ The strategies take two numbers rather than domain objects, keeping them
 decoupled from the domain model and freely composable (the discount decorator,
 added next, wraps any strategy through the same interface).
 
+## Bulk discounts (Decorator pattern)
+
+`BulkDiscountDecorator` wraps any `IPricingStrategy` and applies a percentage
+discount when quantity exceeds a threshold. Cherry ("$5.00/kg, 10% off over
+2kg") is per-weight pricing _composed with_ a discount - not a third pricing
+type. The same decorator works unchanged over per-item pricing, and decorators
+can stack (e.g. a future seasonal discount wrapping a bulk discount).
+
+Boundary decision: the spec says "more than 2kg", so exactly 2kg pays full
+price - pinned by a dedicated test.
+
 ## Status
 
 Work in progress — being built incrementally, commit by commit. Design decisions,
