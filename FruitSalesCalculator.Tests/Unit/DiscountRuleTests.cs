@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace FruitSalesCalculator.Tests
+namespace FruitSalesCalculator.Tests.Unit
 {
     public class DiscountRuleTests
     {

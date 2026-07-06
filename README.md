@@ -23,7 +23,7 @@ The core domain lives in `FruitSalesCalculator.Core/Domain`:
 - **`DiscountRule`** — an optional modifier on a fruit (e.g. "10% off over 2kg"),
   expressed as a threshold quantity and a discount fraction. Modelled as a
   modifier rather than a third pricing type, so discount logic can compose with
-  any measurement basis (see design notes, coming with the pricing strategies).
+  any measurement basis (see 'Bulk discounts' below).
 - **`Order` / `OrderLine`** — a customer order. An order line holds a fruit
   _name_ and a quantity; resolution to the configured fruit happens at pricing
   time. `Quantity` is deliberately generic — kilograms for per-weight fruit,
@@ -38,7 +38,7 @@ Design notes:
 - **Discounts are data, not code** — a fruit carries an optional rule; no new
   classes are needed to configure a discounted fruit.
 
-  ## Pricing strategies (Strategy pattern)
+## Pricing strategies (Strategy pattern)
 
 `IPricingStrategy` defines one interchangeable way of pricing a line:
 given a base unit price and a quantity, return the line total.
@@ -59,9 +59,6 @@ discount when quantity exceeds a threshold. Cherry ("$5.00/kg, 10% off over
 type. The same decorator works unchanged over per-item pricing, and decorators
 can stack (e.g. a future seasonal discount wrapping a bulk discount).
 
-Boundary decision: the spec says "more than 2kg", so exactly 2kg pays full
-price - pinned by a dedicated test.
-
 Two interpretation decisions on the Cherry rule, both pinned by tests:
 
 - "More than 2kg" is exclusive - exactly 2kg pays full price.
@@ -73,7 +70,7 @@ Two interpretation decisions on the Cherry rule, both pinned by tests:
   (`DiscountKind`), so different fruits can use different schemes in the
   same shop.
 
-  ## Strategy composition (Factory pattern)
+## Strategy composition (Factory pattern)
 
 `PricingStrategyFactory` is the single place that decides which pricing code a
 fruit needs: pick the base strategy from `PricingType`, then wrap it in the
@@ -95,6 +92,43 @@ with a case-insensitive comparer:
   instances are safe to read from concurrently priced orders without locks.
 - `GetByName` returns null for unknown fruit (normal outcome, handled by the
   pricing service); `Add` throws on duplicates (caller error, fails loudly).
+
+## Order pricing (the service layer)
+
+`OrderPricingService` orchestrates a price calculation: resolve each order
+line's fruit from the repository, obtain its composed strategy from the
+factory, price the line, and sum. It knows nothing about storage or pricing
+rules - both are behind interfaces - so it never changes when pricing models
+are added.
+
+`CalculateOrderTotal` returns an `OrderPricingResult` (per-line breakdown +
+total) rather than a bare number, so receipts can itemise without re-pricing.
+An order line naming an unconfigured fruit fails with a clear
+`KeyNotFoundException` identifying the fruit.
+
+## Testing approach
+
+Testing is layered deliberately, mirrored by the test project's folder
+structure (`Unit/` and `Integration/`):
+
+- **Unit** - each class exercised in isolation:
+  - Pure-logic tests for strategies and decorators with real inputs and
+    expected outputs, including boundary decisions (exactly 2kg pays full
+    price; whole-line vs tiered discounting compared side by side).
+  - Moq-isolated tests for `OrderPricingService` - the repository and factory
+    are mocked, so these verify orchestration only: the right arguments reach
+    the strategy, line totals sum correctly, unknown fruit and null orders
+    are rejected. They stay green even if a concrete strategy has a bug -
+    that failure belongs to the strategy's own tests.
+- **Integration** - the real components composed, no mocks:
+  - The brief's own worked example (Apple 1.5kg + Banana x4 + Cherry 3kg =
+    $17.70), pinning the headline scenario end to end.
+  - 100 orders priced concurrently against one shared catalogue - exercising
+    the thread-safety design (ConcurrentDictionary + immutable domain objects
+    objects + stateless strategies = no locks needed on the pricing path).
+
+Each layer fails for exactly one kind of reason: a red unit test points at a
+class, a red integration test points at the wiring between them.
 
 ## Status
 

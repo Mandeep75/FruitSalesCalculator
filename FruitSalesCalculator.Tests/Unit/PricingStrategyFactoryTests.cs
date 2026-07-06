@@ -2,7 +2,7 @@
 using FruitSalesCalculator.Core.Pricing;
 using Xunit;
 
-namespace FruitSalesCalculator.Tests;
+namespace FruitSalesCalculator.Tests.Unit;
 
 public class PricingStrategyFactoryTests
 {
