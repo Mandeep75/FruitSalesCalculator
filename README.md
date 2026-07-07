@@ -185,7 +185,9 @@ factory so new strategies plug in without touching existing files.
 
 **Persistence** - swap the DI registration from `InMemoryFruitRepository` to
 `EfCoreFruitRepository`; the EF Core project and its integration tests
-demonstrate the abstraction holds.
+demonstrate the abstraction holds.The exact swap (DbContext registration,
+Scoped lifetime, schema creation) is included as commented code in the
+console app's composition root - verified working against SQLite.
 
 **A different host** (Web API, background worker): the Core library is
 host-agnostic - an API would be a thin controller layer over
