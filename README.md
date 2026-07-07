@@ -6,6 +6,18 @@ or with discount rules).
 
 Built for the Origin Energy 2nd round coding assessment. .NET 10 / C#.
 
+## Running it
+
+```bash
+dotnet run --project FruitSalesCalculator.ConsoleApp    # demo orders + receipts
+dotnet test                                             # full test suite
+```
+
+The demo configures the brief's three fruits plus a tiered-discount Mango,
+then prints three receipts: the brief's example order ($17.70), a side-by-side
+of whole-line vs tiered discounting on identical inputs ($13.50 vs $14.50),
+and both discounted fruits at exactly the threshold quantity (no discount).
+
 ## Solution structure
 
 | Project                           | Purpose                                                                                                                                                                                                |
@@ -106,6 +118,10 @@ total) rather than a bare number, so receipts can itemise without re-pricing.
 An order line naming an unconfigured fruit fails with a clear
 `KeyNotFoundException` identifying the fruit.
 
+Presentation is behind `IReceiptPrinter` - the console receipt is the first
+implementation; an invoice writer or email formatter would be others. Output
+formatting (currency, layout) lives there, never in pricing logic.
+
 ## Testing approach
 
 Testing is layered deliberately, mirrored by the test project's folder
@@ -124,7 +140,7 @@ structure (`Unit/` and `Integration/`):
   - The brief's own worked example (Apple 1.5kg + Banana x4 + Cherry 3kg =
     $17.70), pinning the headline scenario end to end.
   - 100 orders priced concurrently against one shared catalogue - exercising
-    the thread-safety design (ConcurrentDictionary + immutable domain objects
+    the thread-safety design (ConcurrentDictionary + immutable domain
     objects + stateless strategies = no locks needed on the pricing path).
 
 Each layer fails for exactly one kind of reason: a red unit test points at a
