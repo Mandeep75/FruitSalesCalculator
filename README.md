@@ -20,11 +20,12 @@ and both discounted fruits at exactly the threshold quantity (no discount).
 
 ## Solution structure
 
-| Project                           | Purpose                                                                                                                                                                                                |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `FruitSalesCalculator.Core`       | Class library holding all domain models and business logic — fruit definitions, pricing strategies, and order price calculation. Deliberately host-agnostic: it has no dependency on how it's invoked. |
-| `FruitSalesCalculator.ConsoleApp` | Console client that demonstrates the system end-to-end: configures the fruit catalogue, builds a sample order, and prints a priced receipt.                                                            |
-| `FruitSalesCalculator.Tests`      | xUnit test project covering the core logic, using arrange/act/assert notation.                                                                                                                         |
+| Project                            | Purpose                                                                                                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `FruitSalesCalculator.Core`        | Class library holding all domain models and business logic — fruit definitions, pricing strategies, and order price calculation. Deliberately host-agnostic: it has no dependency on how it's invoked. |
+| `FruitSalesCalculator.ConsoleApp`  | Console client that demonstrates the system end-to-end: configures the fruit catalogue, builds a sample order, and prints a priced receipt.                                                            |
+| `FruitSalesCalculator.Tests`       | xUnit test project covering the core logic, using arrange/act/assert notation.                                                                                                                         |
+| `FruitSalesCalculator.Data.EfCore` | Optional EF Core + SQLite implementation of `IFruitRepository`, demonstrating that the storage abstraction genuinely holds - swapping it in is a DI registration change only.                          |
 
 ## Domain model
 
@@ -104,6 +105,15 @@ with a case-insensitive comparer:
   instances are safe to read from concurrently priced orders without locks.
 - `GetByName` returns null for unknown fruit (normal outcome, handled by the
   pricing service); `Add` throws on duplicates (caller error, fails loudly).
+
+A second implementation, `EfCoreFruitRepository` (in
+`FruitSalesCalculator.Data.EfCore`), persists the catalogue via EF Core +
+SQLite, mapping `DiscountRule` as an owned entity and enums as readable
+strings. It satisfies the identical contract - including case-insensitive
+lookup, achieved in SQL rather than via a dictionary comparer - and is
+covered by integration tests against a real in-memory SQLite engine. The
+console app deliberately keeps the in-memory default; the swap is a one-line
+DI registration.
 
 ## Order pricing (the service layer)
 

@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="FruitSalesCalculator.ConsoleApp/FruitSalesCalculator.ConsoleApp.csproj" />
   <Project Path="FruitSalesCalculator.Core/FruitSalesCalculator.Core.csproj" />
+  <Project Path="FruitSalesCalculator.Data.EfCore/FruitSalesCalculator.Data.EfCore.csproj" />
   <Project Path="FruitSalesCalculator.Tests/FruitSalesCalculator.Tests.csproj" />
 </Solution>

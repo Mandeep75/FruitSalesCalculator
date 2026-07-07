@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FruitSalesCalculator.Core\FruitSalesCalculator.Core.csproj" />
+    <ProjectReference Include="..\FruitSalesCalculator.Data.EfCore\FruitSalesCalculator.Data.EfCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

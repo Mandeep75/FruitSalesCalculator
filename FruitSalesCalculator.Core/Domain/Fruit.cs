@@ -11,6 +11,11 @@ public class Fruit
     public PricingType PricingType { get; }
     public DiscountRule? Discount { get; }
 
+    // For EF Core materialization only - EF cannot pass owned objects
+    // (Discount) through constructor parameters. Private, so callers must
+    // still use the validating constructor.
+    private Fruit() { Name = string.Empty; }
+
     public Fruit(string name, decimal basePrice, PricingType pricingType, DiscountRule? discount = null)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -44,6 +49,9 @@ public class DiscountRule
     public decimal ThresholdQuantity { get; }
     public decimal DiscountPercentage { get; }
     public DiscountKind Kind { get; }
+
+    // For EF Core materialization only.
+    private DiscountRule() { }
 
     public DiscountRule(decimal thresholdQuantity, decimal discountPercentage, DiscountKind kind = DiscountKind.WholeLine)
     {
