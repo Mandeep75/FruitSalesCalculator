@@ -20,12 +20,12 @@ and both discounted fruits at exactly the threshold quantity (no discount).
 
 ## Solution structure
 
-| Project                            | Purpose                                                                                                                                                                                                |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `FruitSalesCalculator.Core`        | Class library holding all domain models and business logic — fruit definitions, pricing strategies, and order price calculation. Deliberately host-agnostic: it has no dependency on how it's invoked. |
-| `FruitSalesCalculator.ConsoleApp`  | Console client that demonstrates the system end-to-end: configures the fruit catalogue, builds a sample order, and prints a priced receipt.                                                            |
-| `FruitSalesCalculator.Tests`       | xUnit test project covering the core logic, using arrange/act/assert notation.                                                                                                                         |
-| `FruitSalesCalculator.Data.EfCore` | Optional EF Core + SQLite implementation of `IFruitRepository`, demonstrating that the storage abstraction genuinely holds - swapping it in is a DI registration change only.                          |
+| Project                            | Purpose                                                                                                                                                                                                          |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FruitSalesCalculator.Core`        | Class library holding all domain models and business logic — fruit definitions, pricing strategies, and order price calculation. Deliberately host-agnostic: it has no dependency on how it's invoked.           |
+| `FruitSalesCalculator.ConsoleApp`  | Console client that demonstrates the system end-to-end: configures the fruit catalogue, builds a sample order, and prints a priced receipt.                                                                      |
+| `FruitSalesCalculator.Tests`       | xUnit test project (arrange/act/assert), organised into `Unit/` and `Integration/` folders - unit tests for each class in isolation, integration tests for the composed system and the SQLite-backed repository. |
+| `FruitSalesCalculator.Data.EfCore` | Optional EF Core + SQLite implementation of `IFruitRepository`, demonstrating that the storage abstraction genuinely holds - swapping it in is a DI registration change only.                                    |
 
 ## Domain model
 
@@ -156,8 +156,40 @@ structure (`Unit/` and `Integration/`):
 Each layer fails for exactly one kind of reason: a red unit test points at a
 class, a red integration test points at the wiring between them.
 
-## Status
+## How I'd extend it
 
-Work in progress — being built incrementally, commit by commit. Design decisions,
-patterns used, and extension notes will be documented here as the implementation
-progresses.
+**A new fruit** - pure data, no code change:
+`repository.Add(new Fruit("Mango", 3.50m, PricingType.PerWeight))`.
+
+**A new discounted fruit** - also pure data: attach a `DiscountRule` and the
+factory composes the right decorator automatically. Different fruits can use
+different `DiscountKind`s in the same catalogue.
+
+**A new pricing model** (e.g. per-punnet, or "price per dozen"): one new
+`IPricingStrategy` implementation, one new `PricingType` member, one new case
+in the factory. No existing strategy, service, or test changes.
+
+**A new kind of discount logic** (e.g. loyalty pricing, seasonal date-range
+specials, buy-one-get-one): one new decorator implementing `IPricingStrategy`,
+plus a `DiscountKind` member and factory case. Because decorators wrap the
+interface itself, new discount kinds compose with existing ones out of the box
+(a seasonal discount could wrap a bulk discount wrapping a base strategy).
+
+**Extensibility trade-off, stated honestly**: adding a pricing model or
+discount kind touches two known registration points (the enum and the factory)
+alongside the genuinely new class. That's deliberate - at this scale, a
+compiler-checked enum and a single factory are simpler and safer than a
+runtime registration mechanism. If pricing models were expected to
+proliferate, or be contributed by other teams, I'd move to a registry-based
+factory so new strategies plug in without touching existing files.
+
+**Persistence** - swap the DI registration from `InMemoryFruitRepository` to
+`EfCoreFruitRepository`; the EF Core project and its integration tests
+demonstrate the abstraction holds.
+
+**A different host** (Web API, background worker): the Core library is
+host-agnostic - an API would be a thin controller layer over
+`IOrderPricingService`, with no change to any pricing logic.
+
+**New output formats** (invoice file, email receipt): one new
+`IReceiptPrinter` implementation.
